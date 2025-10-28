@@ -40,7 +40,7 @@ ssize_t sit(void *args)
     // if free
     if(request->table->freeMap & (1 << request->index))
     {
-        printf("The seat is free %d\n", request->index);
+        printf("The seat %d is free.\n", request->index);
     }
     else
     {
@@ -64,7 +64,7 @@ ssize_t un_sit(void *args)
     // validate input
     if(request->index >= NUM_OF_SEATS)
     {
-        printf("Invalid index %d\n", request->index);
+        printf("Invalid index %d.\n", request->index);
         return -2;
     }
 
@@ -78,14 +78,14 @@ ssize_t un_sit(void *args)
     // validate user
     if(request->table->seats[request->index] != request->session_id)
     {
-        printf("User id mismatch %d\n", request->session_id);
+        printf("User id mismatch was %d.\n", request->table->seats[request->index]);
         return -3;
     }
     // set the bit. [0 or 1 = 1], [1 or 1 = 1].
     request->table->freeMap |= (uint8_t)(1 << request->index);
     // update seats
     request->table->seats[request->index] = 0;
-    printf("Remove user %d from seat %d\n", request->session_id, request->index);
+    printf("Remove user %d from seat %d.\n", request->session_id, request->index);
     return 0;
 }
 
@@ -97,7 +97,7 @@ ssize_t get_u_seat(void *args)
     // validate input
     if(request->index >= NUM_OF_SEATS)
     {
-        printf("Invalid index %d\n", request->index);
+        printf("Invalid index %d.\n", request->index);
         return -1;
     }
 
