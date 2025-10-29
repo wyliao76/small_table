@@ -1,8 +1,10 @@
 #ifndef TABLE_H
 #define TABLE_H
 
+#include <../include/player.h>
 #include <stdint.h>
 #include <unistd.h>
+
 
 enum
 {
@@ -22,7 +24,7 @@ typedef struct request_t
 {
     table_t *table;
     uint8_t index;
-    uint8_t session_id;
+    player_t *player;
 } request_t;
 
 ssize_t sit(void *args);

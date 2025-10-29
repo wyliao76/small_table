@@ -29,9 +29,9 @@ ssize_t sit(void *args)
         {
             printf("The seat %zu was taken. Checking the duplicate user...\n", i);
             // check the user
-            if(request->table->seats[i] == request->session_id)
+            if(request->table->seats[i] == request->player->id)
             {
-                printf("User %d already sit at the table.\n", request->session_id);
+                printf("User %d already sit at the table.\n", request->player->id);
                 return -3;
             }
         }
@@ -52,7 +52,7 @@ ssize_t sit(void *args)
     // clear the bit. [0 and 0 = 0], [1 and 0 = 0].
     request->table->freeMap &= (uint8_t)~(1 << request->index);
     // update seats
-    request->table->seats[request->index] = request->session_id;
+    request->table->seats[request->index] = request->player->id;
 
     return request->index;
 }
@@ -76,7 +76,7 @@ ssize_t un_sit(void *args)
     }
 
     // validate user
-    if(request->table->seats[request->index] != request->session_id)
+    if(request->table->seats[request->index] != request->player->id)
     {
         printf("User id mismatch was %d.\n", request->table->seats[request->index]);
         return -3;
@@ -85,7 +85,7 @@ ssize_t un_sit(void *args)
     request->table->freeMap |= (uint8_t)(1 << request->index);
     // update seats
     request->table->seats[request->index] = 0;
-    printf("Remove user %d from seat %d.\n", request->session_id, request->index);
+    printf("Remove user %d from seat %d.\n", request->player->id, request->index);
     return 0;
 }
 
