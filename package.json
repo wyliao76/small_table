@@ -1,0 +1,34 @@
+{
+  "name": "table",
+  "version": "1.0.0",
+  "description": "Welcome to the `c template` repository. This guide will help you set up and run the provided scripts.",
+  "homepage": "https://github.com/wyliao76/small_table#readme",
+  "bugs": {
+    "url": "https://github.com/wyliao76/small_table/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wyliao76/small_table.git"
+  },
+  "license": "ISC",
+  "author": "Will Liao",
+  "type": "module",
+  "main": "table.ts",
+  "scripts": {
+    "test": "vitest",
+    "lint": "eslint --fix table.test.ts",
+    "format": "prettier --write table.test.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.38.0",
+    "@types/jest": "^30.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "eslint": "^9.38.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.2",
+    "vitest": "^4.0.4"
+  }
+}

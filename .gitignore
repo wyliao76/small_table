@@ -477,3 +477,4 @@ sanitizers.txt
 .flags
 
 build/
+node_modules
