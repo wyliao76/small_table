@@ -10,7 +10,9 @@ enum
 
 typedef struct player_t
 {
-    uint8_t id;
+    uint32_t id;
+    uint16_t server_id;
+    uint16_t table_id;
 } player_t;
 
 #endif    // PLAYER_H
