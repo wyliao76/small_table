@@ -6,18 +6,20 @@
 #include <string.h>
 #include <unistd.h>
 
-// #define BIT_IS_SET(map, n)  ((map) & BIT(n))
-// #define BIT_IS_CLEAR(map, n)   (!((map) & BIT(n)))
-// #define BIT_SET(map, n)     ((map) |= BIT(n))
-// #define BIT_CLEAR(map, n)   ((map) &= ~BIT(n))
-#define BIT_ALL_CLEAR(map)  ((map) = 0)
+#define BITMAP_BYTES ((NUM_OF_SEATS + EIGHT - 1) / EIGHT)
+// #define BIT_ALL_CLEAR(map)  ((map) = 0)
+
 
 enum
 {
-    NUM_OF_SEATS = 4,
+    NUM_OF_TABLES  = 2,
+    NUM_OF_SEATS = 10,
     EIGHT = 8,
     EMPTY = 0xFF,
 };
+
+// static const uint8_t FREE_MAP_ZERO[BITMAP_BYTES]  = {0x00};
+// static uint8_t *FREEMAP_EMPTY = NULL;
 
 static inline uint64_t BIT(uint8_t n)
 {
@@ -65,7 +67,7 @@ static inline void BIT_ALL_SET(uint8_t *map, uint8_t nbits)
 typedef struct table_t
 {
     // 1 is free, 0 is taken.
-    uint8_t freeMap[(NUM_OF_SEATS + EIGHT - 1) / EIGHT];
+    uint8_t freeMap[BITMAP_BYTES];
     uint32_t seats[NUM_OF_SEATS];
     // player_t *seats[NUM_OF_SEATS]; // or pointers
 } table_t;
@@ -77,7 +79,7 @@ typedef struct request_t
     player_t *player;
 } request_t;
 
-void table_init(table_t *table);
+void table_init(table_t *tables);
 
 ssize_t sit(void *args);
 

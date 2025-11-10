@@ -3,19 +3,27 @@
 #include <string.h>
 #include <strings.h>
 
-void table_init(table_t *table)
+void table_init(table_t *tables)
 {
-    BIT_ALL_SET(table->freeMap, NUM_OF_SEATS);
-    memset(table->seats, 0, NUM_OF_SEATS * sizeof(table->seats[0]));
+    for(size_t i = 0; i < NUM_OF_TABLES; ++i)
+    {
+        BIT_ALL_SET(tables[i].freeMap, NUM_OF_SEATS);
+        memset(tables[i].seats, 0, NUM_OF_SEATS * sizeof(tables[0].seats[0]));
+    }
 }
 
+// todo: update player info
 // return -3, -2, -1, 0 to NUM_OF_SEATS - 1
 ssize_t sit(void *args)
 {
     request_t *request = (request_t *)args;
     size_t     nbytes;
+    // uint8_t    fullMap[(NUM_OF_SEATS + EIGHT - 1) / EIGHT];
+    size_t isFull;
 
     nbytes = (NUM_OF_SEATS + EIGHT - 1) / EIGHT;
+    // memset(&fullMap, 0, (NUM_OF_SEATS + EIGHT - 1) / EIGHT);
+    isFull = 1;
 
     // validate input
     if(request->index >= NUM_OF_SEATS)
@@ -25,7 +33,20 @@ ssize_t sit(void *args)
     }
 
     // check if full
-    if(*request->table->freeMap == 0)
+    // if(memcmp(request->table->freeMap, &fullMap, (NUM_OF_SEATS + EIGHT - 1) / EIGHT) == 0)
+    // {
+    //     printf("Table is full.\n");
+    //     return -1;
+    // }
+    for(size_t i = 0; i < nbytes; ++i)
+    {
+        if(request->table->freeMap[i] != 0)
+        {
+            isFull = 0;
+            break;
+        }
+    }
+    if(isFull)
     {
         printf("Table is full.\n");
         return -1;

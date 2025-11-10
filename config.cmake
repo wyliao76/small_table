@@ -24,10 +24,12 @@ set(LIBRARY_TARGETS "")
 set(server_SOURCES
         src/server.c
         src/table.c
+        src/player.c
 )
 
 set(main_HEADERS
         include/table.h
+        include/player.h
 )
 
 set(main_LINK_LIBRARIES "")

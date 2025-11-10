@@ -4,136 +4,122 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void assert_freemap(const uint8_t *freeMap, size_t nbits)
-{
-    size_t nbytes;
-    size_t rem;
-
-    nbytes = nbits / EIGHT;
-    rem    = nbits % EIGHT;
-
-    for(size_t i = 0; i < nbytes; ++i)
-    {
-        assert(freeMap[i] == 0xFF);
-    }
-    if(rem)
-    {
-        assert(freeMap[nbytes] == (uint8_t)((1U << rem) - 1));
-    }
-}
-
 int main(void)
 {
     // Use stack for simplicity
+    // 12 players
+    // 2 tables 10 seats
     player_t  players[NUM_OF_PLAYERS];
-    table_t   table;
+    table_t   tables[NUM_OF_TABLES];
     request_t request;
-    ssize_t   result;
 
-    for(int i = 0; i < NUM_OF_PLAYERS; ++i)
-    {
-        player_t player;
-        player.id  = (uint32_t)i;
-        players[i] = player;
+    player_init(players);
+    table_init(tables);
+    // table 0
+    assert(tables[0].freeMap[0] == 0xFF);
+    assert(tables[0].freeMap[1] == 0x03);
 
-        printf("player %d : %u\n", i, players[i].id);
-    }
+    // table 1
+    assert(tables[1].freeMap[0] == 0xFF);
+    assert(tables[1].freeMap[1] == 0x03);
 
-    table_init(&table);
-    assert_freemap(table.freeMap, NUM_OF_SEATS);
-
-    request.table = &table;
-
-    request.index  = 2;
+    request.table  = &tables[0];
+    request.index  = 1;
     request.player = &players[0];
-    printf("player 0 takes seat 2, should return 2. FreeMap is 1011(11).\n");
-    result = sit(&request);
-    assert(result == 2);
-    assert(*table.freeMap == 0xB);
+    printf("player 0 takes seat 1, should return 1. FreeMap is 1101(13).\n");
+    assert(sit(&request) == 1);
+    assert(tables[0].freeMap[0] == 0xFD);
+    assert(tables[0].freeMap[1] == 0x03);
 
     request.index  = 0;
     request.player = &players[1];
-    printf("player 1 takes seat 0, should return 0, FreeMap is 1010(10).\n");
-    result = sit(&request);
-    assert(result == 0);
-    assert(*table.freeMap == 0xA);
+    printf("player 1 takes seat 0, should return 0, FreeMap is 1100(12).\n");
+    assert(sit(&request) == 0);
+    assert(tables[0].freeMap[0] == 0xFC);
+    assert(tables[0].freeMap[1] == 0x03);
 
     request.index  = 1;
     request.player = &players[1];
-    printf("duplicate player 1 takes seat 1, should return -3, FreeMap is 1010(10).\n");
-    result = sit(&request);
-    assert(result == -3);
-    assert(*table.freeMap == 0xA);
+    printf("player 1 takes seat 0, should return -3 (duplicate player).\n");
+    assert(sit(&request) == -3);
+    assert(tables[0].freeMap[0] == 0xFC);
+    assert(tables[0].freeMap[1] == 0x03);
 
-    request.index  = 3;
-    request.player = &players[2];
-    printf("player 2 takes seat 3, should return 3, FreeMap is 0010(2).\n");
-    result = sit(&request);
-    assert(result == 3);
-    assert(*table.freeMap == 0x2);
+    // 12 - 2, sit 10 players to table 0
+    for(ssize_t i = 2; i < (NUM_OF_PLAYERS - 2); ++i)
+    {
+        request.index  = (uint8_t)i;
+        request.player = &players[i];
+        assert(sit(&request) == i);
+    }
+
+    assert(tables[0].freeMap[0] == 0);
+    assert(tables[0].freeMap[1] == 0);
+
+    // table should be full
+    request.index  = 1;
+    request.player = &players[NUM_OF_PLAYERS - 1];    // 11
+    assert(sit(&request) == -1);
+
+    // invalid index
+    request.index  = NUM_OF_SEATS;                    // 10
+    request.player = &players[NUM_OF_PLAYERS - 1];    // 11
+    assert(sit(&request) == -2);
 
     request.index  = 0;
-    request.player = &players[3];
-    printf("player 3 takes seat 0, should return remaining seat 1, FreeMap is 0000.\n");
-    result = sit(&request);
-    assert(result == 1);
-    assert(*table.freeMap == 0x0);
-
-    request.index  = 0;
-    request.player = &players[4];
-    printf("player 4 takes seat 0, should return -1, FreeMap is 0000.\n");
-    result = sit(&request);
-    assert(result == -1);
-    assert(*table.freeMap == 0x0);
-
-    request.index  = 4;
-    request.player = &players[4];
-    printf("player 4 takes seat 4, should return -2, FreeMap is 0000.\n");
-    result = sit(&request);
-    assert(result == -2);
-    assert(*table.freeMap == 0x0);
-
-    request.index  = 2;
-    request.player = &players[2];
-    printf("remove player 2 from seat 2, should return -3.\n");
-    result = un_sit(&request);
-    assert(result == -3);
-
-    request.index  = 4;
-    request.player = &players[2];
-    printf("remove player 2 from seat 4, should return -2.\n");
-    result = un_sit(&request);
-    assert(result == -2);
-
-    request.index  = 2;
     request.player = &players[0];
-    printf("remove player 0 from seat 2, should return 0, FreeMap is 0100(4).\n");
-    result = un_sit(&request);
-    assert(result == 0);
-    assert(*table.freeMap == 0x4);
+    printf("remove player 0 from seat 0, should return -3 (mismatch).\n");
+    assert(un_sit(&request) == -3);
+
+    request.index  = NUM_OF_SEATS;
+    request.player = &players[2];
+    printf("remove player 2 from seat 10, should return -2 (invalid index).\n");
+    assert(un_sit(&request) == -2);
 
     request.index  = 2;
-    request.player = &players[0];
-    printf("remove player 0 from seat 2, should return -1.\n");
-    result = un_sit(&request);
-    assert(result == -1);
+    request.player = &players[2];
+    printf("remove player 2 from seat 2, should return 0, FreeMap is 0100(4).\n");
+    assert(un_sit(&request) == 0);
+    assert(tables[0].freeMap[0] == 0x04);
+    assert(tables[0].freeMap[1] == 0);
+
+    request.index  = 2;
+    request.player = &players[2];
+    printf("remove player 2 from seat 2, should return -1 (seat is empty).\n");
+    assert(un_sit(&request) == -1);
 
     request.index  = 0;
-    request.player = &players[4];
-    printf("player 4 takes seat 0, should return 2, FreeMap is 0.\n");
-    result = sit(&request);
-    assert(result == 2);
-    assert(*table.freeMap == 0x0);
+    request.player = &players[NUM_OF_PLAYERS - 1];    // 11
+    printf("player 11 takes seat 0, should return 2, FreeMap is 0.\n");
+    assert(sit(&request) == 2);
+    assert(tables[0].freeMap[0] == 0);
+    assert(tables[0].freeMap[1] == 0);
 
-    request.index = 4;
-    printf("check who seats at seat 4, should return -1.\n");
-    result = get_player(&request);
-    assert(result == -1);
+    request.index = NUM_OF_SEATS;    // 10
+    printf("check who seats at seat 10, should return -1 (invalid index).\n");
+    assert(get_player(&request) == -1);
 
     request.index = 2;
-    printf("check who seats at seat 2, should return 4.\n");
-    result = get_player(&request);
-    assert(result == 4);
+    printf("check who seats at seat 2, should return 11.\n");
+    assert(get_player(&request) == 11);
+
+    request.table  = &tables[1];
+    request.index  = 2;
+    request.player = &players[NUM_OF_PLAYERS - 2];    // 10
+    printf("player 10 takes seat 2, should return 2. FreeMap is 1011(11).\n");
+    assert(sit(&request) == 2);
+    assert(tables[1].freeMap[0] == 0xFB);
+    assert(tables[1].freeMap[1] == 0x03);
+
+    request.index = 2;
+    printf("check who seats at seat 2, should return 10.\n");
+    assert(get_player(&request) == 10);
+
+    // todo
+    // request.index  = 0;
+    // request.player = &players[NUM_OF_PLAYERS - 1];    // 11
+    // printf("player 11 takes seat 0 at table 1, should return -4 (player already sit at different table).\n");
+    // assert(sit(&request) == -4);
 
     return EXIT_SUCCESS;
 }
